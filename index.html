@@ -181,14 +181,18 @@
     let historyVisible = false;
     
     async function loadConversationList() {
-      if (historyVisible) {
-        // Thu gọn
-        historySection.style.maxHeight = "0px";
-        historyVisible = false;
-        return;
-      }
-    
       try {
+        // Nếu đang mở → thu lại
+        if (historyVisible) {
+          historySection.style.maxHeight = historySection.scrollHeight + "px"; // giữ nguyên chiều cao trước khi đóng
+          requestAnimationFrame(() => {
+            historySection.style.maxHeight = "0px"; // animate thu lại
+          });
+          historyVisible = false;
+          return;
+        }
+    
+        // Nếu đang đóng → load lại nội dung
         const res = await fetch(`${API_BASE}/conversations/${userId}`);
         const data = await res.json();
     
@@ -206,8 +210,12 @@
           historySection.appendChild(item);
         });
     
-        // Mở rộng (set maxHeight động theo content)
-        historySection.style.maxHeight = historySection.scrollHeight + "px";
+        // Reset maxHeight để tính lại scrollHeight mới
+        historySection.style.maxHeight = "0px";
+        requestAnimationFrame(() => {
+          historySection.style.maxHeight = historySection.scrollHeight + "px"; // animate mở xuống
+        });
+    
         historyVisible = true;
       } catch (err) {
         console.error("Lỗi tải lịch sử:", err);
@@ -268,6 +276,7 @@
 
 </body>
 </html>
+
 
 
 
