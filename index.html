@@ -140,205 +140,185 @@
 
     <!-- JavaScript để xử lý chat -->
 <script>
-    const API_BASE = "https://ai-chat-production-1401.up.railway.app"; // Thay bằng URL Railway
-    const userId = "user001"; // demo
+const API_BASE = "https://ai-chat-production-1401.up.railway.app";
+const userId = "user001"; // demo
 
-    const chatBox = document.getElementById('chat-box');
-    const input = document.getElementById('message-input');
-    const sendBtn = document.getElementById('send-button');
+const chatBox = document.getElementById('chat-box');
+const input = document.getElementById('message-input');
+const sendBtn = document.getElementById('send-button');
 
-    function addMessage(role, content) {
-        const wrapper = document.createElement('div');
-        wrapper.className = "flex w-full";
-    
-        const div = document.createElement('div');
-        if (role === "user") {
-            wrapper.classList.add("justify-end");
-            div.className = "bg-blue-600 text-white rounded-xl p-4 max-w-sm break-words shadow-md";
-            div.textContent = content;
-        } else {
-            wrapper.classList.add("justify-start");
-            div.className = "bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words shadow-sm";
-            // parse markdown sang HTML
-            div.innerHTML = marked.parse(content);
-        }
-    
-        wrapper.appendChild(div);
-        chatBox.appendChild(wrapper);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
+function addMessage(role, content) {
+  const wrapper = document.createElement('div');
+  wrapper.className = "flex w-full";
 
-    async function loadHistory() {
-        try {
-            const res = await fetch(`${API_BASE}/history/${userId}`);
-            const data = await res.json();
-            (data.messages || []).forEach(m => addMessage(m.role, m.content));
-        } catch (e) {
-            console.error("Lỗi tải lịch sử:", e);
-        }
-    }
+  const div = document.createElement('div');
+  if (role === "user") {
+    wrapper.classList.add("justify-end");
+    div.className = "bg-blue-600 text-white rounded-xl p-4 max-w-sm break-words shadow-md";
+    div.textContent = content;
+  } else {
+    wrapper.classList.add("justify-start");
+    div.className = "bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words shadow-sm";
+    div.innerHTML = marked.parse(content);
+  }
 
-    const historyToggle = document.getElementById("history-toggle");
-    const historySection = document.getElementById("history-section");
-    let historyVisible = false;
-    let activeConversationId = null;
-    
-    function setActiveConversation(id, element) {
-      activeConversationId = id;
-      document.querySelectorAll("#history-section div").forEach(el => {
-        el.classList.remove("bg-blue-100", "text-blue-700");
-        el.classList.add("text-gray-700");
-      });
-      element.classList.add("bg-blue-100", "text-blue-700");
-      element.classList.remove("text-gray-700");
-    }
-    
-    async function loadConversationList() {
-      try {
-        if (historyVisible) {
-          // Đóng list
-          historySection.style.maxHeight = historySection.scrollHeight + "px";
-          requestAnimationFrame(() => {
-            historySection.style.maxHeight = "0px";
-          });
-          historyVisible = false;
-    
-          // Khi đóng → bỏ active của "Lịch sử trò chuyện"
-          historyToggle.classList.remove("bg-blue-100", "text-blue-700");
-          historyToggle.classList.add("text-gray-700");
-    
-          return;
-        }
-    
-        // Load list từ API
-        const res = await fetch(`${API_BASE}/conversations/${userId}`);
-        const data = await res.json();
-    
-        historySection.innerHTML = "";
-        data.conversations.forEach(c => {
-          const item = document.createElement("div");
-          item.textContent = c.preview;
-          item.className = "p-2 cursor-pointer rounded text-gray-700 hover:bg-gray-200";
-    
-          if (c.id === activeConversationId) {
-            item.classList.add("bg-blue-100", "text-blue-700");
-            item.classList.remove("text-gray-700");
-          }
-    
-          item.onclick = async () => {
-            setActiveConversation(c.id, item);
-    
-            // Đồng thời highlight menu lớn "Lịch sử trò chuyện"
-            setActiveMenu("menu-history");
-    
-            const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
-            const detail = await res2.json();
-            chatBox.innerHTML = "";
-            detail.messages.forEach(m => addMessage(m.role, m.content));
-          };
-    
-          historySection.appendChild(item);
-        });
-    
-        // Mở list
+  wrapper.appendChild(div);
+  chatBox.appendChild(wrapper);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch(`${API_BASE}/history/${userId}`);
+    const data = await res.json();
+    (data.messages || []).forEach(m => addMessage(m.role, m.content));
+  } catch (e) {
+    console.error("Lỗi tải lịch sử:", e);
+  }
+}
+
+const historySection = document.getElementById("history-section");
+let historyVisible = false;
+let activeConversationId = null;
+
+function setActiveConversation(id, element) {
+  activeConversationId = id;
+  document.querySelectorAll("#history-section div").forEach(el => {
+    el.classList.remove("bg-blue-100", "text-blue-700");
+    el.classList.add("text-gray-700");
+  });
+  element.classList.add("bg-blue-100", "text-blue-700");
+  element.classList.remove("text-gray-700");
+}
+
+function setActiveMenu(id) {
+  document.querySelectorAll("#main-menu li").forEach(li => {
+    li.classList.remove("bg-blue-100", "text-blue-700");
+    li.classList.add("text-gray-700");
+  });
+  const active = document.getElementById(id);
+  if (active) {
+    active.classList.add("bg-blue-100", "text-blue-700");
+    active.classList.remove("text-gray-700");
+  }
+}
+
+async function loadConversationList() {
+  try {
+    if (historyVisible) {
+      // Thu list lại
+      historySection.style.maxHeight = historySection.scrollHeight + "px";
+      requestAnimationFrame(() => {
         historySection.style.maxHeight = "0px";
-        requestAnimationFrame(() => {
-          historySection.style.maxHeight = historySection.scrollHeight + "px";
-        });
-        historyVisible = true;
-    
-        // Khi mở → set active cho "Lịch sử trò chuyện"
-        setActiveMenu("menu-history");
-      } catch (err) {
-        console.error("Lỗi tải lịch sử:", err);
-      }
-    }
-    
-    historyToggle.addEventListener("click", loadConversationList);
-
-    function setActiveMenu(id) {
-      document.querySelectorAll("ul li").forEach(li => {
-        li.classList.remove("bg-blue-100", "text-blue-700");
-        li.classList.add("text-gray-700");
       });
-    
-      const active = document.getElementById(id);
-      if (active) {
-        active.classList.add("bg-blue-100", "text-blue-700");
-        active.classList.remove("text-gray-700");
+      historyVisible = false;
+      // Bỏ active menu history khi đóng
+      document.getElementById("menu-history").classList.remove("bg-blue-100", "text-blue-700");
+      document.getElementById("menu-history").classList.add("text-gray-700");
+      return;
+    }
+
+    // Load list
+    const res = await fetch(`${API_BASE}/conversations/${userId}`);
+    const data = await res.json();
+
+    historySection.innerHTML = "";
+    data.conversations.forEach(c => {
+      const item = document.createElement("div");
+      item.textContent = c.preview;
+      item.className = "p-2 cursor-pointer rounded text-gray-700 hover:bg-gray-200";
+
+      if (c.id === activeConversationId) {
+        item.classList.add("bg-blue-100", "text-blue-700");
+        item.classList.remove("text-gray-700");
       }
-    }
-    
-    // Gán sự kiện cho từng menu
-    document.getElementById("menu-doctor").addEventListener("click", () => {
-      setActiveMenu("menu-doctor");
-      chatBox.innerHTML = "";  
-      addMessage("assistant", "Chức năng chat với Bác sĩ đang phát triển...");
-    });
-    
-    document.getElementById("menu-ai").addEventListener("click", () => {
-      setActiveMenu("menu-ai");
-      chatBox.innerHTML = "";  
-      loadHistory();   // load lại hội thoại gần nhất với AI
-    });
-    
-    document.getElementById("menu-history").addEventListener("click", () => {
-      setActiveMenu("menu-history");
-      loadConversationList();  // mở/tắt danh sách lịch sử
-    });
 
-    
-    async function sendMessage() {
-        const message = input.value.trim();
-        if (!message) return;
-        
-        // Clear toàn bộ chat trên giao diện
+      item.onclick = async () => {
+        setActiveConversation(c.id, item);
+        setActiveMenu("menu-history"); // highlight menu lớn
+
+        const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
+        const detail = await res2.json();
         chatBox.innerHTML = "";
-    
-        // Gọi API xóa lịch sử cũ trong DB
-        try {
-            await fetch(`${API_BASE}/history/${userId}`, { method: "DELETE" });
-        } catch (err) {
-            console.error("Lỗi khi xoá lịch sử:", err);
-        }
-    
-        // Hiển thị tin nhắn user
-        addMessage("user", message);
-        input.value = "";
+        detail.messages.forEach(m => addMessage(m.role, m.content));
+      };
 
-        // Loading state
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'flex justify-start';
-        loadingDiv.innerHTML = `<div class="bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words animate-pulse shadow-sm">Đang trả lời...</div>`;
-        chatBox.appendChild(loadingDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    
-        try {
-            const response = await fetch(`${API_BASE}/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, question: message })
-            });
-            const data = await response.json();
-            loadingDiv.remove();
-            if (data?.answer) addMessage("assistant", data.answer);
-            else addMessage("assistant", "(Không nhận được phản hồi)");
-        } catch (err) {
-            console.error("Lỗi gửi tin:", err);
-            loadingDiv.remove();
-            addMessage("assistant", "(Có lỗi xảy ra. Vui lòng thử lại sau)");
-        }
-    }
+      historySection.appendChild(item);
+    });
 
-    sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+    // Mở list
+    historySection.style.maxHeight = "0px";
+    requestAnimationFrame(() => {
+      historySection.style.maxHeight = historySection.scrollHeight + "px";
+    });
+    historyVisible = true;
+    setActiveMenu("menu-history"); // highlight khi mở
+  } catch (err) {
+    console.error("Lỗi tải lịch sử:", err);
+  }
+}
 
-    // Load history khi mở web
-    loadHistory();
+// Gán sự kiện cho menu
+document.getElementById("menu-doctor").addEventListener("click", () => {
+  setActiveMenu("menu-doctor");
+  chatBox.innerHTML = "";
+  addMessage("assistant", "Chức năng chat với Bác sĩ đang phát triển...");
+});
+
+document.getElementById("menu-ai").addEventListener("click", () => {
+  setActiveMenu("menu-ai");
+  chatBox.innerHTML = "";
+  loadHistory();
+});
+
+document.getElementById("menu-history").addEventListener("click", loadConversationList);
+
+async function sendMessage() {
+  const message = input.value.trim();
+  if (!message) return;
+
+  chatBox.innerHTML = "";
+  try {
+    await fetch(`${API_BASE}/history/${userId}`, { method: "DELETE" });
+  } catch (err) {
+    console.error("Lỗi xoá lịch sử:", err);
+  }
+
+  addMessage("user", message);
+  input.value = "";
+
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'flex justify-start';
+  loadingDiv.innerHTML = `<div class="bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words animate-pulse shadow-sm">Đang trả lời...</div>`;
+  chatBox.appendChild(loadingDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  try {
+    const response = await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, question: message })
+    });
+    const data = await response.json();
+    loadingDiv.remove();
+    if (data?.answer) addMessage("assistant", data.answer);
+    else addMessage("assistant", "(Không nhận được phản hồi)");
+  } catch (err) {
+    console.error("Lỗi gửi tin:", err);
+    loadingDiv.remove();
+    addMessage("assistant", "(Có lỗi xảy ra. Vui lòng thử lại sau)");
+  }
+}
+
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+
+loadHistory(); // load khi mở trang
 </script>
 
 </body>
 </html>
+
 
 
 
