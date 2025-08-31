@@ -6,6 +6,7 @@
    <link rel="icon" type ="image/png" href="icon.png">
     <title>Tư vấn trực tuyến</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -148,14 +149,16 @@
     
         const div = document.createElement('div');
         if (role === "user") {
-            wrapper.classList.add("justify-end"); // user bên phải
+            wrapper.classList.add("justify-end");
             div.className = "bg-blue-600 text-white rounded-xl p-4 max-w-sm break-words shadow-md";
+            div.textContent = content;
         } else {
-            wrapper.classList.add("justify-start"); // bot bên trái
+            wrapper.classList.add("justify-start");
             div.className = "bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words shadow-sm";
+            // parse markdown sang HTML
+            div.innerHTML = marked.parse(content);
         }
     
-        div.textContent = content;
         wrapper.appendChild(div);
         chatBox.appendChild(wrapper);
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -222,6 +225,7 @@
 
 </body>
 </html>
+
 
 
 
