@@ -56,10 +56,12 @@
                     <i class="fas fa-robot"></i>
                     <span>Chat với Chatbot AI</span>
                 </li>
-                <li id="history-section" class="p-3 rounded-xl hover:bg-gray-200 cursor-pointer flex items-center space-x-3 text-gray-700">
+                <li id="history-btn" class="p-3 rounded-xl hover:bg-gray-200 cursor-pointer flex items-center space-x-3 text-gray-700">
                     <i class="fas fa-history"></i>
                     <span>Lịch sử trò chuyện</span>
                 </li>
+                <!-- Container danh sách ẩn -->
+                <div id="history-section" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out ml-8"></div>
             </ul>
 
             <!-- Online Doctors Section -->
@@ -174,27 +176,46 @@
         }
     }
 
-    async function loadConversationList() {
-      const res = await fetch(`${API_BASE}/conversations/${userId}`);
-      const data = await res.json();
-      const list = document.getElementById("history-section");
-      list.innerHTML = "";
+    const historyBtn = document.getElementById("history-btn");
+    const historySection = document.getElementById("history-section");
+    let historyVisible = false;
     
-      data.conversations.forEach(c => {
-        const item = document.createElement("div");
-        item.textContent = c.preview;
-        item.className = "p-2 cursor-pointer hover:bg-gray-200 rounded";
-        item.onclick = async () => {
-          const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
-          const detail = await res2.json();
-          chatBox.innerHTML = "";
-          detail.messages.forEach(m => addMessage(m.role, m.content));
-        };
-        list.appendChild(item);
-      });
+    async function loadConversationList() {
+      if (historyVisible) {
+        // Thu gọn
+        historySection.style.maxHeight = "0px";
+        historyVisible = false;
+        return;
+      }
+    
+      try {
+        const res = await fetch(`${API_BASE}/conversations/${userId}`);
+        const data = await res.json();
+    
+        historySection.innerHTML = "";
+        data.conversations.forEach(c => {
+          const item = document.createElement("div");
+          item.textContent = c.preview;
+          item.className = "p-2 cursor-pointer hover:bg-gray-200 rounded";
+          item.onclick = async () => {
+            const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
+            const detail = await res2.json();
+            chatBox.innerHTML = "";
+            detail.messages.forEach(m => addMessage(m.role, m.content));
+          };
+          historySection.appendChild(item);
+        });
+    
+        // Mở rộng (set maxHeight động theo content)
+        historySection.style.maxHeight = historySection.scrollHeight + "px";
+        historyVisible = true;
+      } catch (err) {
+        console.error("Lỗi tải lịch sử:", err);
+      }
     }
+    
+    historyBtn.addEventListener("click", loadConversationList);
 
-    document.querySelector('.fa-history').parentElement.addEventListener('click', loadConversationList);
     
     async function sendMessage() {
         const message = input.value.trim();
@@ -247,6 +268,7 @@
 
 </body>
 </html>
+
 
 
 
