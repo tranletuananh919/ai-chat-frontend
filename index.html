@@ -174,16 +174,28 @@
     async function sendMessage() {
         const message = input.value.trim();
         if (!message) return;
+        
+        // Clear toàn bộ chat trên giao diện
+        chatBox.innerHTML = "";
+    
+        // Gọi API xóa lịch sử cũ trong DB
+        try {
+            await fetch(`${API_BASE}/history/${userId}`, { method: "DELETE" });
+        } catch (err) {
+            console.error("Lỗi khi xoá lịch sử:", err);
+        }
+    
+        // Hiển thị tin nhắn user
         addMessage("user", message);
         input.value = "";
-
+    
         // Loading state
         const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'self-start bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words animate-pulse shadow-sm';
-        loadingDiv.textContent = 'Đang trả lời...';
+        loadingDiv.className = 'flex justify-start';
+        loadingDiv.innerHTML = `<div class="bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words animate-pulse shadow-sm">Đang trả lời...</div>`;
         chatBox.appendChild(loadingDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
-
+    
         try {
             const response = await fetch(`${API_BASE}/chat`, {
                 method: 'POST',
@@ -210,5 +222,6 @@
 
 </body>
 </html>
+
 
 
