@@ -56,7 +56,7 @@
                     <i class="fas fa-robot"></i>
                     <span>Chat với Chatbot AI</span>
                 </li>
-                <li class="p-3 rounded-xl hover:bg-gray-200 cursor-pointer flex items-center space-x-3 text-gray-700">
+                <li id="history-section" class="p-3 rounded-xl hover:bg-gray-200 cursor-pointer flex items-center space-x-3 text-gray-700">
                     <i class="fas fa-history"></i>
                     <span>Lịch sử trò chuyện</span>
                 </li>
@@ -174,6 +174,28 @@
         }
     }
 
+    async function loadConversationList() {
+      const res = await fetch(`${API_BASE}/conversations/${userId}`);
+      const data = await res.json();
+      const list = document.getElementById("history-section");
+      list.innerHTML = "";
+    
+      data.conversations.forEach(c => {
+        const item = document.createElement("div");
+        item.textContent = c.preview;
+        item.className = "p-2 cursor-pointer hover:bg-gray-200 rounded";
+        item.onclick = async () => {
+          const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
+          const detail = await res2.json();
+          chatBox.innerHTML = "";
+          detail.messages.forEach(m => addMessage(m.role, m.content));
+        };
+        list.appendChild(item);
+      });
+    }
+
+    document.querySelector('.fa-history').parentElement.addEventListener('click', loadConversationList);
+    
     async function sendMessage() {
         const message = input.value.trim();
         if (!message) return;
@@ -191,7 +213,7 @@
         // Hiển thị tin nhắn user
         addMessage("user", message);
         input.value = "";
-    
+
         // Loading state
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'flex justify-start';
@@ -225,6 +247,7 @@
 
 </body>
 </html>
+
 
 
 
