@@ -256,18 +256,37 @@
     
     historyToggle.addEventListener("click", loadConversationList);
 
-    function setActiveMenu(menuId) {
-      document.querySelectorAll("#main-menu li").forEach(li => {
+    function setActiveMenu(id) {
+      document.querySelectorAll("ul li").forEach(li => {
         li.classList.remove("bg-blue-100", "text-blue-700");
         li.classList.add("text-gray-700");
       });
     
-      const active = document.getElementById(menuId);
+      const active = document.getElementById(id);
       if (active) {
         active.classList.add("bg-blue-100", "text-blue-700");
         active.classList.remove("text-gray-700");
       }
     }
+    
+    // Gán sự kiện cho từng menu
+    document.getElementById("menu-doctor").addEventListener("click", () => {
+      setActiveMenu("menu-doctor");
+      chatBox.innerHTML = "";  
+      addMessage("assistant", "Chức năng chat với Bác sĩ đang phát triển...");
+    });
+    
+    document.getElementById("menu-ai").addEventListener("click", () => {
+      setActiveMenu("menu-ai");
+      chatBox.innerHTML = "";  
+      loadHistory();   // load lại hội thoại gần nhất với AI
+    });
+    
+    document.getElementById("menu-history").addEventListener("click", () => {
+      setActiveMenu("menu-history");
+      loadConversationList();  // mở/tắt danh sách lịch sử
+    });
+
     
     async function sendMessage() {
         const message = input.value.trim();
@@ -320,6 +339,7 @@
 
 </body>
 </html>
+
 
 
 
