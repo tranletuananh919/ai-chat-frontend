@@ -265,38 +265,44 @@ document.getElementById("menu-doctor").addEventListener("click", () => {
   addMessage("assistant", "Chức năng chat với Bác sĩ đang phát triển...");
 });
 
-document.getElementById("menu-ai").addEventListener("click", () => {
+document.getElementById("menu-ai").addEventListener("click", async () => {
   setActiveMenu("menu-ai");
   chatBox.innerHTML = "";
-  loadHistory();
+
+  // Tạo conversation mới trên server
+  try {
+    const res = await fetch(`${API_BASE}/conversation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId })
+    });
+    const data = await res.json();
+    activeConversationId = data.id; // lưu id conversation mới
+  } catch (err) {
+    console.error("Lỗi tạo conversation:", err);
+  }
 });
 
 document.getElementById("menu-history").addEventListener("click", loadConversationList);
 
 async function sendMessage() {
   const message = input.value.trim();
-  if (!message) return;
+  if (!message || !activeConversationId) return;
 
-  chatBox.innerHTML = "";
-  try {
-    await fetch(`${API_BASE}/history/${userId}`, { method: "DELETE" });
-  } catch (err) {
-    console.error("Lỗi xoá lịch sử:", err);
-  }
-
+  // Hiển thị tin nhắn user
   addMessage("user", message);
   input.value = "";
 
-  const loadingDiv = document.createElement('div');
+  const loadingDiv = document.createElement("div");
   loadingDiv.className = 'flex justify-start';
   loadingDiv.innerHTML = `<div class="bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words animate-pulse shadow-sm">Đang trả lời...</div>`;
   chatBox.appendChild(loadingDiv);
   chatBox.scrollTop = chatBox.scrollHeight;
 
   try {
-    const response = await fetch(`${API_BASE}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch(`${API_BASE}/chat/${activeConversationId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, question: message })
     });
     const data = await response.json();
@@ -318,3 +324,4 @@ loadHistory(); // load khi mở trang
 
 </body>
 </html>
+
