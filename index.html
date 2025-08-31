@@ -55,13 +55,11 @@
                 <li class="p-3 rounded-xl bg-blue-100 text-blue-700 cursor-pointer flex items-center space-x-3">
                     <i class="fas fa-robot"></i>
                     <span>Chat với Chatbot AI</span>
+                <li id="history-toggle" class="p-3 rounded-xl hover:bg-gray-200 cursor-pointer flex items-center space-x-3 text-gray-700">
+                  <i class="fas fa-history"></i>
+                  <span>Lịch sử trò chuyện</span>
                 </li>
-                <li id="history-btn" class="p-3 rounded-xl hover:bg-gray-200 cursor-pointer flex items-center space-x-3 text-gray-700">
-                    <i class="fas fa-history"></i>
-                    <span>Lịch sử trò chuyện</span>
-                </li>
-                <!-- Container danh sách ẩn -->
-                <div id="history-section" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out ml-8"></div>
+                <div id="history-section" class="overflow-hidden transition-all duration-500 max-h-0"></div>
             </ul>
 
             <!-- Online Doctors Section -->
@@ -176,14 +174,25 @@
         }
     }
 
-    const historyBtn = document.getElementById("history-btn");
+    const historyToggle = document.getElementById("history-toggle");
     const historySection = document.getElementById("history-section");
     let historyVisible = false;
+    let activeConversationId = null;
+    
+    function setActiveConversation(id, element) {
+      activeConversationId = id;
+      document.querySelectorAll("#history-section div").forEach(el => {
+        el.classList.remove("bg-blue-100", "text-blue-700");
+        el.classList.add("text-gray-700");
+      });
+      element.classList.add("bg-blue-100", "text-blue-700");
+      element.classList.remove("text-gray-700");
+    }
     
     async function loadConversationList() {
       try {
-        // Nếu đang mở → thu lại
         if (historyVisible) {
+          // Đóng list
           historySection.style.maxHeight = historySection.scrollHeight + "px";
           requestAnimationFrame(() => {
             historySection.style.maxHeight = "0px";
@@ -192,7 +201,7 @@
           return;
         }
     
-        // Nếu đang đóng → load lại danh sách
+        // Load list từ API
         const res = await fetch(`${API_BASE}/conversations/${userId}`);
         const data = await res.json();
     
@@ -200,20 +209,16 @@
         data.conversations.forEach(c => {
           const item = document.createElement("div");
           item.textContent = c.preview;
-          item.className =
-            "p-2 cursor-pointer rounded text-gray-700 hover:bg-gray-200";
+          item.className = "p-2 cursor-pointer rounded text-gray-700 hover:bg-gray-200";
     
-          // Nếu id này đúng bằng active → gắn highlight luôn
           if (c.id === activeConversationId) {
             item.classList.add("bg-blue-100", "text-blue-700");
             item.classList.remove("text-gray-700");
           }
     
           item.onclick = async () => {
-            // Set active highlight
             setActiveConversation(c.id, item);
     
-            // Load chi tiết conversation
             const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
             const detail = await res2.json();
             chatBox.innerHTML = "";
@@ -223,20 +228,18 @@
           historySection.appendChild(item);
         });
     
-        // Reset maxHeight để tính lại scrollHeight mới
+        // Mở list
         historySection.style.maxHeight = "0px";
         requestAnimationFrame(() => {
           historySection.style.maxHeight = historySection.scrollHeight + "px";
         });
-    
         historyVisible = true;
       } catch (err) {
         console.error("Lỗi tải lịch sử:", err);
       }
     }
     
-    historyBtn.addEventListener("click", loadConversationList);
-
+    historyToggle.addEventListener("click", loadConversationList);
     
     async function sendMessage() {
         const message = input.value.trim();
@@ -289,6 +292,7 @@
 
 </body>
 </html>
+
 
 
 
