@@ -184,15 +184,15 @@
       try {
         // Nếu đang mở → thu lại
         if (historyVisible) {
-          historySection.style.maxHeight = historySection.scrollHeight + "px"; // giữ nguyên chiều cao trước khi đóng
+          historySection.style.maxHeight = historySection.scrollHeight + "px";
           requestAnimationFrame(() => {
-            historySection.style.maxHeight = "0px"; // animate thu lại
+            historySection.style.maxHeight = "0px";
           });
           historyVisible = false;
           return;
         }
     
-        // Nếu đang đóng → load lại nội dung
+        // Nếu đang đóng → load lại danh sách
         const res = await fetch(`${API_BASE}/conversations/${userId}`);
         const data = await res.json();
     
@@ -200,20 +200,33 @@
         data.conversations.forEach(c => {
           const item = document.createElement("div");
           item.textContent = c.preview;
-          item.className = "p-2 cursor-pointer hover:bg-gray-200 rounded";
+          item.className =
+            "p-2 cursor-pointer rounded text-gray-700 hover:bg-gray-200";
+    
+          // Nếu id này đúng bằng active → gắn highlight luôn
+          if (c.id === activeConversationId) {
+            item.classList.add("bg-blue-100", "text-blue-700");
+            item.classList.remove("text-gray-700");
+          }
+    
           item.onclick = async () => {
+            // Set active highlight
+            setActiveConversation(c.id, item);
+    
+            // Load chi tiết conversation
             const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
             const detail = await res2.json();
             chatBox.innerHTML = "";
             detail.messages.forEach(m => addMessage(m.role, m.content));
           };
+    
           historySection.appendChild(item);
         });
     
         // Reset maxHeight để tính lại scrollHeight mới
         historySection.style.maxHeight = "0px";
         requestAnimationFrame(() => {
-          historySection.style.maxHeight = historySection.scrollHeight + "px"; // animate mở xuống
+          historySection.style.maxHeight = historySection.scrollHeight + "px";
         });
     
         historyVisible = true;
@@ -276,6 +289,7 @@
 
 </body>
 </html>
+
 
 
 
