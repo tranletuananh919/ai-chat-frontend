@@ -143,12 +143,21 @@
     const sendBtn = document.getElementById('send-button');
 
     function addMessage(role, content) {
+        const wrapper = document.createElement('div');
+        wrapper.className = "flex w-full";
+    
         const div = document.createElement('div');
-        div.className = role === "user"
-            ? 'self-end bg-blue-600 text-white rounded-xl p-4 max-w-sm break-words shadow-md'
-            : 'self-start bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words shadow-sm';
+        if (role === "user") {
+            wrapper.classList.add("justify-end"); // user bên phải
+            div.className = "bg-blue-600 text-white rounded-xl p-4 max-w-sm break-words shadow-md";
+        } else {
+            wrapper.classList.add("justify-start"); // bot bên trái
+            div.className = "bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words shadow-sm";
+        }
+    
         div.textContent = content;
-        chatBox.appendChild(div);
+        wrapper.appendChild(div);
+        chatBox.appendChild(wrapper);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
@@ -201,4 +210,5 @@
 
 </body>
 </html>
+
 
