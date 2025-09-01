@@ -132,196 +132,181 @@
 
   <!-- Script -->
   <script>
-    const API_BASE = "https://ai-chat-production-1401.up.railway.app"; 
-    const userId = "user001";
-
-    const chatBox = document.getElementById('chat-box');
-    const input = document.getElementById('message-input');
-    const sendBtn = document.getElementById('send-button');
-    const historySection = document.getElementById("history-section");
-
-    let activeConversationId = null;
-    let historyVisible = false;
-
-    // Hiển thị message
-    function addMessage(role, content) {
-      const wrap = document.createElement('div');
-      wrap.className = "flex w-full";
-      const div = document.createElement('div');
-
-      if (role === "user") {
-        wrap.classList.add("justify-end");
-        div.className = "bg-blue-600 text-white rounded-xl p-4 max-w-sm break-words shadow-md";
-        div.textContent = content;
-      } else {
-        wrap.classList.add("justify-start");
-        div.className = "bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words shadow-sm whitespace-pre-wrap";
-        div.innerHTML = marked.parse(content);
+      const API_BASE = "https://ai-chat-production-1401.up.railway.app"; 
+      const userId = "user001";
+    
+      const chatBox = document.getElementById('chat-box');
+      const input = document.getElementById('message-input');
+      const sendBtn = document.getElementById('send-button');
+      const historySection = document.getElementById("history-section");
+    
+      let activeConversationId = null;
+      let historyVisible = false;
+      let currentReader = null; // để cancel stream cũ khi đổi hội thoại
+    
+      // --- Hàm thêm tin nhắn
+      function addMessage(role, content) {
+        const wrap = document.createElement('div');
+        wrap.className = "flex w-full";
+        const div = document.createElement('div');
+    
+        if (role === "user") {
+          wrap.classList.add("justify-end");
+          div.className = "bg-blue-600 text-white rounded-xl p-4 max-w-sm break-words shadow-md";
+          div.textContent = content;
+        } else {
+          wrap.classList.add("justify-start");
+          div.className = "bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words shadow-sm whitespace-pre-wrap";
+          div.innerHTML = marked.parse(content);
+        }
+    
+        wrap.appendChild(div);
+        chatBox.appendChild(wrap);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return div;
       }
-
-      wrap.appendChild(div);
-      chatBox.appendChild(wrap);
-      chatBox.scrollTop = chatBox.scrollHeight;
-      return div;
-    }
-
-    function setActiveMenu(id) {
-      document.querySelectorAll("ul li").forEach(li => {
-        li.classList.remove("bg-blue-100", "text-blue-700");
-        li.classList.add("text-gray-700");
-      });
-      const active = document.getElementById(id);
-      if (active) {
-        active.classList.add("bg-blue-100", "text-blue-700");
-        active.classList.remove("text-gray-700");
-      }
-    }
-
-    function setActiveHistoryItem(clicked) {
-      document.querySelectorAll("#history-section .history-item").forEach(el => {
-        el.classList.remove("bg-blue-100", "text-blue-700");
-        el.classList.add("text-gray-700");
-      });
-      clicked.classList.add("bg-blue-100", "text-blue-700");
-      clicked.classList.remove("text-gray-700");
-    }
-
-    // Tạo conversation mới
-    async function createConversation() {
-      const res = await fetch(`${API_BASE}/conversation`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId })
-      });
-      const data = await res.json();
-      activeConversationId = data.id;
-      return activeConversationId;
-    }
-
-    // Streaming chat
-    async function streamChat(message) {
-      if (!activeConversationId) await createConversation();
-
-      addMessage("user", message);
-      const wrap = document.createElement("div");
-      wrap.className = "flex justify-start";
-      const bubble = document.createElement("div");
-      bubble.className = "bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words shadow-sm whitespace-pre-wrap";
-      wrap.appendChild(bubble);
-      chatBox.appendChild(wrap);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      try {
-        const resp = await fetch(`${API_BASE}/chat-stream/${activeConversationId}`, {
+    
+      // --- Tạo hội thoại mới
+      async function createConversation() {
+        const res = await fetch(`${API_BASE}/conversation`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, question: message })
+          body: JSON.stringify({ userId })
         });
-        if (!resp.ok || !resp.body) {
-          bubble.textContent = "(Không nhận được phản hồi)";
-          return;
-        }
-        const reader = resp.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let full = "";
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          full += chunk;
-          bubble.textContent += chunk;
-          chatBox.scrollTop = chatBox.scrollHeight;
-        }
-        bubble.innerHTML = marked.parse(full);
-      } catch (err) {
-        bubble.textContent = "(Có lỗi xảy ra)";
+        const data = await res.json();
+        activeConversationId = data.id;
+        return activeConversationId;
       }
-    }
-
-    // Gửi tin nhắn
-    async function sendMessage() {
-      const message = input.value.trim();
-      if (!message) return;
-      input.value = "";
-      await streamChat(message);
-    }
-    sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
-
-    // Menu: Bác sĩ
-    document.getElementById("menu-doctor").addEventListener("click", () => {
-      setActiveMenu("menu-doctor");
-      chatBox.innerHTML = "";
-      addMessage("assistant", "👨‍⚕️ Tính năng Chat với Bác sĩ đang phát triển, vui lòng thử lại sau.");
-    });
-
-    // Menu: AI
-    document.getElementById("menu-ai").addEventListener("click", async () => {
-      setActiveMenu("menu-ai");
-      chatBox.innerHTML = "";
-      activeConversationId = null;
-      await createConversation();
-      addMessage("assistant", "Bạn đang bắt đầu một cuộc trò chuyện mới với Chatbot AI 🤖");
-    });
-
-    // Menu: History
-    document.getElementById("menu-history").addEventListener("click", loadConversationList);
-
-    async function loadConversationList() {
-      if (historyVisible) {
-        historySection.style.maxHeight = "0px";
-        historyVisible = false;
-        return;
-      }
-      const res = await fetch(`${API_BASE}/conversations/${userId}`);
-      const data = await res.json();
-      historySection.innerHTML = "";
-      data.conversations.forEach(c => {
-        const row = document.createElement("div");
-        row.className = "history-item group flex items-center justify-between gap-2 p-2 rounded cursor-pointer text-gray-700 hover:bg-gray-200";
-        row.innerHTML = `
-          <div class="truncate flex-1">${c.preview}</div>
-          <button class="shrink-0 hidden group-hover:inline-flex text-red-500 hover:text-red-600" title="Xoá">
-            <i class="fas fa-trash"></i>
-          </button>
-        `;
-        row.addEventListener("click", async e => {
-          if (e.target.closest("button")) return;
-          setActiveMenu("menu-history");
-          setActiveHistoryItem(row);
-          activeConversationId = c.id;
-          const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
-          const detail = await res2.json();
-          chatBox.innerHTML = "";
-          (detail.messages || []).forEach(m => addMessage(m.role, m.content));
-        });
-        row.querySelector("button").addEventListener("click", async () => {
-          await fetch(`${API_BASE}/conversation/${c.id}`, { method: "DELETE" });
-          if (activeConversationId === c.id) {
-            activeConversationId = null;
-            chatBox.innerHTML = "";
+    
+      // --- Streaming AI trả lời
+      async function streamChat(message) {
+        if (!activeConversationId) await createConversation();
+    
+        addMessage("user", message);
+        const wrap = document.createElement("div");
+        wrap.className = "flex justify-start";
+        const bubble = document.createElement("div");
+        bubble.className = "bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words shadow-sm whitespace-pre-wrap";
+        wrap.appendChild(bubble);
+        chatBox.appendChild(wrap);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    
+        try {
+          const resp = await fetch(`${API_BASE}/chat-stream/${activeConversationId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, question: message })
+          });
+          if (!resp.ok || !resp.body) {
+            bubble.textContent = "(Không nhận được phản hồi)";
+            return;
           }
-          loadConversationList();
-        });
-        historySection.appendChild(row);
-      });
-      historySection.style.maxHeight = "300px";
-      historyVisible = true;
-      setActiveMenu("menu-history");
-    }
-
-    // FAQ click
-    document.querySelectorAll(".faq-item").forEach(item => {
-      item.addEventListener("click", async () => {
-        const question = item.innerText.trim();
-        activeConversationId = null;
-        await createConversation();
+    
+          // Nếu đang có stream cũ thì cancel
+          if (currentReader) {
+            try { currentReader.cancel(); } catch {}
+          }
+    
+          const reader = resp.body.getReader();
+          currentReader = reader;
+          const decoder = new TextDecoder("utf-8");
+          let full = "";
+    
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            full += chunk;
+            bubble.textContent += chunk;
+            chatBox.scrollTop = chatBox.scrollHeight;
+          }
+          bubble.innerHTML = marked.parse(full);
+        } catch (err) {
+          bubble.textContent = "(Có lỗi xảy ra)";
+          console.error("Stream error:", err);
+        } finally {
+          currentReader = null;
+        }
+      }
+    
+      // --- Gửi tin nhắn
+      async function sendMessage(msg) {
+        const message = msg || input.value.trim();
+        if (!message) return;
+        if (!msg) input.value = "";
+        await streamChat(message);
+      }
+      sendBtn.addEventListener("click", () => sendMessage());
+      input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+    
+      // --- Menu: Chat với AI
+      document.getElementById("menu-ai").addEventListener("click", async () => {
         setActiveMenu("menu-ai");
         chatBox.innerHTML = "";
+        activeConversationId = null;
+        await createConversation();
         addMessage("assistant", "Bạn đang bắt đầu một cuộc trò chuyện mới với Chatbot AI 🤖");
-        await streamChat(question);
       });
-    });
+    
+      // --- Menu: History
+      document.getElementById("menu-history").addEventListener("click", loadConversationList);
+    
+      async function loadConversationList() {
+        if (historyVisible) {
+          historySection.style.maxHeight = "0px";
+          historyVisible = false;
+          return;
+        }
+        const res = await fetch(`${API_BASE}/conversations/${userId}`);
+        const data = await res.json();
+        historySection.innerHTML = "";
+        data.conversations.forEach(c => {
+          const row = document.createElement("div");
+          row.className = "history-item group flex items-center justify-between gap-2 p-2 rounded cursor-pointer text-gray-700 hover:bg-gray-200";
+          row.innerHTML = `
+            <div class="truncate flex-1">${c.preview}</div>
+            <button class="shrink-0 hidden group-hover:inline-flex text-red-500 hover:text-red-600" title="Xoá">
+              <i class="fas fa-trash"></i>
+            </button>
+          `;
+    
+          // Xem hội thoại
+          row.addEventListener("click", async e => {
+            if (e.target.closest("button")) return;
+            setActiveMenu("menu-history");
+            activeConversationId = c.id;
+            const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
+            const detail = await res2.json();
+            chatBox.innerHTML = "";
+            (detail.messages || []).forEach(m => addMessage(m.role, m.content));
+          });
+    
+          // Xoá hội thoại
+          row.querySelector("button").addEventListener("click", async e => {
+            e.stopPropagation();
+            await fetch(`${API_BASE}/conversation/${c.id}`, { method: "DELETE" });
+            if (activeConversationId === c.id) {
+              activeConversationId = null;
+              chatBox.innerHTML = "";
+            }
+            row.remove(); // chỉ xoá khỏi giao diện, KHÔNG toggle xổ
+          });
+    
+          historySection.appendChild(row);
+        });
+        historySection.style.maxHeight = "300px";
+        historyVisible = true;
+        setActiveMenu("menu-history");
+      }
+    
+      // --- FAQ click → gửi thẳng vào hội thoại hiện tại
+      document.querySelectorAll(".faq-item").forEach(item => {
+        item.addEventListener("click", async () => {
+          const question = item.innerText.trim();
+          await sendMessage(question);
+        });
+      });
   </script>
 </body>
 </html>
+
