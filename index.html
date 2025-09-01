@@ -259,20 +259,36 @@
       }
     }
 
-     // FAQ click → gửi câu hỏi vào chatbot
+    // FAQ click → gửi câu hỏi vào chatbot
     document.querySelectorAll(".faq-item").forEach(item => {
-      item.addEventListener("click", () => {
+      item.addEventListener("click", async () => {
         const question = item.innerText.trim();
+    
+        // Nếu chưa có hội thoại → tạo mới ngay bằng API
         if (!activeConversationId) {
-          // Nếu chưa có hội thoại thì tạo mới
-          document.getElementById("menu-ai").click();
-          setTimeout(() => sendMessage(question), 500);
-        } else {
-          sendMessage(question);
+          try {
+            const res = await fetch(`${API_BASE}/conversation`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId })
+            });
+            const data = await res.json();
+            activeConversationId = data.id;
+            setActiveMenu("menu-ai");
+            chatBox.innerHTML = "";
+            addMessage("assistant", "Bạn đang bắt đầu một cuộc trò chuyện mới với Chatbot AI 🤖");
+          } catch (err) {
+            console.error("Lỗi tạo hội thoại:", err);
+            return;
+          }
         }
+    
+        // Sau khi có ID → gửi câu hỏi
+        sendMessage(question);
       });
     });
   </script>
 </body>
 </html>
+
 
