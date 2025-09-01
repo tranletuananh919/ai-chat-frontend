@@ -183,6 +183,13 @@
       }
     }
 
+    // --- Chat với Bác sĩ ---
+    document.getElementById("menu-doctor").addEventListener("click", () => {
+      setActiveMenu("menu-doctor");     // highlight menu
+      chatBox.innerHTML = "";           // clear khung chat
+      addMessage("assistant", "👨‍⚕️ Tính năng Chat với Bác sĩ đang phát triển, vui lòng thử lại sau.");
+    });
+
     // Chat AI: tạo hội thoại mới
     document.getElementById("menu-ai").addEventListener("click", async () => {
       setActiveMenu("menu-ai");
@@ -353,6 +360,7 @@
   </script>
 </body>
 </html>
+
 
 
 
