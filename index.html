@@ -181,19 +181,22 @@
       }
     });
 
-    // Gửi tin nhắn
-    async function sendMessage() {
-      const message = input.value.trim();
+    // --- Gửi tin nhắn ---
+    async function sendMessage(optionalMessage) {
+      const message = optionalMessage || input.value.trim();
       if (!message || !activeConversationId) return;
+    
+      if (!optionalMessage) input.value = ""; // chỉ clear nếu user tự gõ
+    
       addMessage("user", message);
-      input.value = "";
-
+    
+      // loading
       const loadingDiv = document.createElement('div');
       loadingDiv.className = 'flex justify-start';
       loadingDiv.innerHTML = `<div class="bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words animate-pulse shadow-sm">Đang trả lời...</div>`;
       chatBox.appendChild(loadingDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
-
+    
       try {
         const res = await fetch(`${API_BASE}/chat/${activeConversationId}`, {
           method: "POST",
@@ -202,6 +205,7 @@
         });
         const data = await res.json();
         loadingDiv.remove();
+    
         if (data?.answer) addMessage("assistant", data.answer);
         else addMessage("assistant", "(Không nhận được phản hồi)");
       } catch (err) {
@@ -264,7 +268,7 @@
       item.addEventListener("click", async () => {
         const question = item.innerText.trim();
     
-        // Nếu chưa có hội thoại → tạo mới ngay bằng API
+        // Nếu chưa có hội thoại → tạo mới trước
         if (!activeConversationId) {
           try {
             const res = await fetch(`${API_BASE}/conversation`, {
@@ -274,6 +278,7 @@
             });
             const data = await res.json();
             activeConversationId = data.id;
+    
             setActiveMenu("menu-ai");
             chatBox.innerHTML = "";
             addMessage("assistant", "Bạn đang bắt đầu một cuộc trò chuyện mới với Chatbot AI 🤖");
@@ -283,12 +288,13 @@
           }
         }
     
-        // Sau khi có ID → gửi câu hỏi
+        // gửi thẳng câu hỏi FAQ
         sendMessage(question);
       });
     });
   </script>
 </body>
 </html>
+
 
 
