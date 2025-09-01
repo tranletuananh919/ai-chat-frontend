@@ -47,7 +47,8 @@
       </ul>
 
       <!-- Container list conversation -->
-      <div id="history-section" class="overflow-hidden transition-all duration-500 max-h-0"></div>
+      <div id="history-section" class="transition-all duration-500 max-h-0 overflow-y-auto"></div>
+
 
       <!-- Online Doctors -->
       <div class="mt-auto pt-6 border-t border-gray-300">
@@ -217,46 +218,84 @@
     sendBtn.addEventListener("click", sendMessage);
     input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
 
-    // Lịch sử hội thoại
+    // --- Lịch sử hội thoại ---
     const historySection = document.getElementById("history-section");
     document.getElementById("menu-history").addEventListener("click", loadConversationList);
-
+    
     async function loadConversationList() {
       try {
+        // Toggle show/hide
         if (historyVisible) {
-          historySection.style.maxHeight = historySection.scrollHeight + "px";
-          requestAnimationFrame(() => { historySection.style.maxHeight = "0px"; });
+          historySection.style.maxHeight = "0px";
           historyVisible = false;
           return;
         }
+    
         const res = await fetch(`${API_BASE}/conversations/${userId}`);
         const data = await res.json();
+    
         historySection.innerHTML = "";
         data.conversations.forEach(c => {
           const item = document.createElement("div");
-          item.textContent = c.preview;
-          item.className = "p-2 cursor-pointer rounded text-gray-700 hover:bg-gray-200";
+          item.className = "flex items-center justify-between p-2 rounded cursor-pointer text-gray-700 hover:bg-gray-200";
+    
+          // preview text
+          const textSpan = document.createElement("span");
+          textSpan.textContent = c.preview;
+    
+          // delete button
+          const delBtn = document.createElement("button");
+          delBtn.innerHTML = "🗑️";
+          delBtn.className = "ml-2 text-red-500 hover:text-red-700";
+          delBtn.onclick = async (e) => {
+            e.stopPropagation(); // tránh trigger click load chat
+            if (!confirm("Bạn có chắc muốn xóa cuộc hội thoại này?")) return;
+    
+            try {
+              const res = await fetch(`${API_BASE}/conversation/${c.id}`, {
+                method: "DELETE"
+              });
+              const result = await res.json();
+              if (result.success) {
+                item.remove(); // xóa khỏi giao diện
+              } else {
+                alert("Xóa thất bại: " + result.error);
+              }
+            } catch (err) {
+              console.error("Lỗi xóa:", err);
+            }
+          };
+    
+          // click vào item -> load conversation
           item.onclick = async () => {
             setActiveMenu("menu-history");
             activeConversationId = c.id;
-            chatBox.innerHTML = "";
+    
+            // reset highlight
             document.querySelectorAll("#history-section div").forEach(el => {
               el.classList.remove("bg-blue-100", "text-blue-700");
               el.classList.add("text-gray-700");
             });
+    
+            // highlight item
             item.classList.add("bg-blue-100", "text-blue-700");
             item.classList.remove("text-gray-700");
+    
+            // load messages
             const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
             const detail = await res2.json();
+            chatBox.innerHTML = "";
             detail.messages.forEach(m => addMessage(m.role, m.content));
           };
+    
+          item.appendChild(textSpan);
+          item.appendChild(delBtn);
           historySection.appendChild(item);
         });
-        historySection.style.maxHeight = "0px";
-        requestAnimationFrame(() => {
-          historySection.style.maxHeight = historySection.scrollHeight + "px";
-        });
+    
+        historySection.style.maxHeight = "300px"; // cho cuộn
         historyVisible = true;
+    
         setActiveMenu("menu-history");
       } catch (err) {
         console.error("Lỗi tải lịch sử:", err);
@@ -295,6 +334,7 @@
   </script>
 </body>
 </html>
+
 
 
 
