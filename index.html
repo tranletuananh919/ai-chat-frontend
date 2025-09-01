@@ -142,9 +142,9 @@
     
       let activeConversationId = null;
       let historyVisible = false;
-      let currentReader = null; // để cancel stream cũ khi đổi hội thoại
+      let currentReader = null; // quản lý stream hiện tại
     
-      // --- Hàm thêm tin nhắn
+      // --- Thêm tin nhắn ---
       function addMessage(role, content) {
         const wrap = document.createElement('div');
         wrap.className = "flex w-full";
@@ -166,7 +166,20 @@
         return div;
       }
     
-      // --- Tạo hội thoại mới
+      // --- Highlight menu ---
+      function setActiveMenu(id) {
+        document.querySelectorAll("#main-menu li").forEach(li => {
+          li.classList.remove("bg-blue-100", "text-blue-700");
+          li.classList.add("text-gray-700");
+        });
+        const active = document.getElementById(id);
+        if (active) {
+          active.classList.add("bg-blue-100", "text-blue-700");
+          active.classList.remove("text-gray-700");
+        }
+      }
+    
+      // --- Tạo hội thoại mới ---
       async function createConversation() {
         const res = await fetch(`${API_BASE}/conversation`, {
           method: "POST",
@@ -178,7 +191,7 @@
         return activeConversationId;
       }
     
-      // --- Streaming AI trả lời
+      // --- Streaming ---
       async function streamChat(message) {
         if (!activeConversationId) await createConversation();
     
@@ -202,7 +215,6 @@
             return;
           }
     
-          // Nếu đang có stream cũ thì cancel
           if (currentReader) {
             try { currentReader.cancel(); } catch {}
           }
@@ -229,17 +241,25 @@
         }
       }
     
-      // --- Gửi tin nhắn
+      // --- Gửi tin ---
       async function sendMessage(msg) {
         const message = msg || input.value.trim();
         if (!message) return;
         if (!msg) input.value = "";
         await streamChat(message);
       }
+    
       sendBtn.addEventListener("click", () => sendMessage());
       input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
     
-      // --- Menu: Chat với AI
+      // --- Menu: Chat với Bác sĩ ---
+      document.getElementById("menu-doctor").addEventListener("click", () => {
+        setActiveMenu("menu-doctor");
+        chatBox.innerHTML = "";
+        addMessage("assistant", "👨‍⚕️ Tính năng Chat với Bác sĩ đang phát triển, vui lòng thử lại sau.");
+      });
+    
+      // --- Menu: Chat AI ---
       document.getElementById("menu-ai").addEventListener("click", async () => {
         setActiveMenu("menu-ai");
         chatBox.innerHTML = "";
@@ -248,7 +268,7 @@
         addMessage("assistant", "Bạn đang bắt đầu một cuộc trò chuyện mới với Chatbot AI 🤖");
       });
     
-      // --- Menu: History
+      // --- Menu: History ---
       document.getElementById("menu-history").addEventListener("click", loadConversationList);
     
       async function loadConversationList() {
@@ -262,7 +282,7 @@
         historySection.innerHTML = "";
         data.conversations.forEach(c => {
           const row = document.createElement("div");
-          row.className = "history-item group flex items-center justify-between gap-2 p-2 rounded cursor-pointer text-gray-700 hover:bg-gray-200";
+          row.className = "group flex items-center justify-between gap-2 p-2 rounded cursor-pointer text-gray-700 hover:bg-gray-200";
           row.innerHTML = `
             <div class="truncate flex-1">${c.preview}</div>
             <button class="shrink-0 hidden group-hover:inline-flex text-red-500 hover:text-red-600" title="Xoá">
@@ -289,7 +309,7 @@
               activeConversationId = null;
               chatBox.innerHTML = "";
             }
-            row.remove(); // chỉ xoá khỏi giao diện, KHÔNG toggle xổ
+            row.remove();
           });
     
           historySection.appendChild(row);
@@ -299,7 +319,7 @@
         setActiveMenu("menu-history");
       }
     
-      // --- FAQ click → gửi thẳng vào hội thoại hiện tại
+      // --- FAQ click ---
       document.querySelectorAll(".faq-item").forEach(item => {
         item.addEventListener("click", async () => {
           const question = item.innerText.trim();
@@ -309,4 +329,5 @@
   </script>
 </body>
 </html>
+
 
