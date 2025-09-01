@@ -4,13 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tư vấn trực tuyến</title>
-  <link rel="icon" type="image/png" href="icon.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; background-color: #e5e7eb; }
-    /* Custom scrollbar */
     #chat-box::-webkit-scrollbar { width: 8px; }
     #chat-box::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
     #chat-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -19,46 +17,73 @@
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-  <!-- Main Container -->
   <div class="flex bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-7xl h-[800px]">
 
     <!-- Sidebar trái -->
     <div class="w-1/4 bg-gray-100 p-6 flex flex-col border-r border-gray-200">
       <h1 class="text-3xl font-bold text-blue-600 mb-6">MEDIVERSE</h1>
       <h2 class="text-2xl font-semibold text-gray-800 mb-4">Tư vấn trực tuyến</h2>
-      <!-- Search -->
+      
+      <!-- Search bar -->
       <div class="relative mb-6">
         <input type="text" placeholder="Q Search" class="w-full p-3 pl-10 rounded-xl bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
       </div>
+
       <!-- Menu -->
       <ul id="main-menu" class="space-y-3 font-medium text-lg">
         <li id="menu-doctor" class="p-3 rounded-xl hover:bg-gray-200 cursor-pointer flex items-center space-x-3 text-gray-700">
-          <i class="fas fa-user-md"></i><span>Chat với Bác sĩ</span>
+          <i class="fas fa-user-md"></i>
+          <span>Chat với Bác sĩ</span>
         </li>
         <li id="menu-ai" class="p-3 rounded-xl hover:bg-gray-200 cursor-pointer flex items-center space-x-3 text-gray-700">
-          <i class="fas fa-robot"></i><span>Chat với Chatbot AI</span>
+          <i class="fas fa-robot"></i>
+          <span>Chat với Chatbot AI</span>
         </li>
         <li id="menu-history" class="p-3 rounded-xl hover:bg-gray-200 cursor-pointer flex items-center space-x-3 text-gray-700">
-          <i class="fas fa-history"></i><span>Lịch sử trò chuyện</span>
+          <i class="fas fa-history"></i>
+          <span>Lịch sử trò chuyện</span>
         </li>
       </ul>
-      <!-- Lịch sử -->
+
+      <!-- Container list conversation -->
       <div id="history-section" class="overflow-hidden transition-all duration-500 max-h-0"></div>
+
+      <!-- Online Doctors -->
+      <div class="mt-auto pt-6 border-t border-gray-300">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Bác sĩ đang online</h3>
+        <div class="flex items-center space-x-3 p-3 bg-gray-200 rounded-xl cursor-pointer">
+          <div class="relative">
+            <i class="fas fa-user-circle text-4xl text-gray-500"></i>
+            <span class="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></span>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-800">Bs. Nguyễn Văn A</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Khung chat -->
     <div class="flex-1 flex flex-col">
+      <!-- Header -->
       <div class="p-6 border-b border-gray-200 flex items-center justify-between">
         <div class="flex items-center space-x-4">
-          <i class="fas fa-robot text-4xl text-blue-600"></i>
+          <div class="relative">
+            <i class="fas fa-robot text-4xl text-blue-600"></i>
+            <span class="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></span>
+          </div>
           <div>
             <h2 class="text-xl font-bold text-gray-800">Tư vấn trực tuyến</h2>
             <p class="text-sm text-gray-500 font-medium">Chatbot AI</p>
           </div>
         </div>
       </div>
+
+      <!-- Chat box -->
       <div id="chat-box" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+
+      <!-- Input -->
       <div class="p-6 border-t border-gray-200 flex items-center space-x-3 bg-white">
         <input type="text" id="message-input" placeholder="Nhập tin nhắn..." class="flex-1 p-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <button id="send-button" class="p-4 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 transition duration-300">
@@ -83,13 +108,23 @@
           <p>Hỗ trợ tư vấn thông tin sức khỏe cơ bản</p>
         </div>
       </div>
+
+      <div class="flex flex-col space-y-4">
+        <h3 class="text-xl font-semibold text-gray-800">Câu hỏi thường gặp</h3>
+        <div class="bg-gray-200 p-4 rounded-xl cursor-pointer hover:bg-gray-300 transition duration-200">
+          <p class="text-gray-800 font-medium">Tôi nên uống thuốc như thế nào?</p>
+        </div>
+        <div class="bg-gray-200 p-4 rounded-xl cursor-pointer hover:bg-gray-300 transition duration-200">
+          <p class="text-gray-800 font-medium">Triệu chứng này có đáng lo không?</p>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Script mới -->
+  <!-- Script -->
   <script>
     const API_BASE = "https://ai-chat-production-1401.up.railway.app"; 
-    const userId = "user001";
+    const userId = "user001"; // demo
 
     const chatBox = document.getElementById('chat-box');
     const input = document.getElementById('message-input');
@@ -118,12 +153,12 @@
 
     function setActiveMenu(id) {
       document.querySelectorAll("ul li").forEach(li => {
-        li.classList.remove("bg-blue-100","text-blue-700");
+        li.classList.remove("bg-blue-100", "text-blue-700");
         li.classList.add("text-gray-700");
       });
       const active = document.getElementById(id);
       if (active) {
-        active.classList.add("bg-blue-100","text-blue-700");
+        active.classList.add("bg-blue-100", "text-blue-700");
         active.classList.remove("text-gray-700");
       }
     }
@@ -140,10 +175,13 @@
         });
         const data = await res.json();
         activeConversationId = data.id;
-        addMessage("assistant","Bạn đang bắt đầu một cuộc trò chuyện mới với Chatbot AI 🤖");
-      } catch(e) { console.error(e); }
+        addMessage("assistant", "Bạn đang bắt đầu một cuộc trò chuyện mới với Chatbot AI 🤖");
+      } catch (err) {
+        console.error("Lỗi tạo hội thoại:", err);
+      }
     });
 
+    // Gửi tin nhắn
     async function sendMessage() {
       const message = input.value.trim();
       if (!message || !activeConversationId) return;
@@ -152,7 +190,7 @@
 
       const loadingDiv = document.createElement('div');
       loadingDiv.className = 'flex justify-start';
-      loadingDiv.innerHTML = `<div class="bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm animate-pulse">Đang trả lời...</div>`;
+      loadingDiv.innerHTML = `<div class="bg-gray-200 text-gray-800 rounded-xl p-4 max-w-sm break-words animate-pulse shadow-sm">Đang trả lời...</div>`;
       chatBox.appendChild(loadingDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -166,54 +204,59 @@
         loadingDiv.remove();
         if (data?.answer) addMessage("assistant", data.answer);
         else addMessage("assistant", "(Không nhận được phản hồi)");
-      } catch(e) {
+      } catch (err) {
+        console.error("Lỗi gửi tin:", err);
         loadingDiv.remove();
-        addMessage("assistant", "(Có lỗi xảy ra)");
+        addMessage("assistant", "(Có lỗi xảy ra. Vui lòng thử lại sau)");
       }
     }
-
     sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keydown", e => { if(e.key==="Enter") sendMessage(); });
+    input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
 
-    // Lịch sử
+    // Lịch sử hội thoại
     const historySection = document.getElementById("history-section");
     document.getElementById("menu-history").addEventListener("click", loadConversationList);
 
     async function loadConversationList() {
       try {
         if (historyVisible) {
-          historySection.style.maxHeight = historySection.scrollHeight+"px";
-          requestAnimationFrame(()=>historySection.style.maxHeight="0px");
-          historyVisible=false; return;
+          historySection.style.maxHeight = historySection.scrollHeight + "px";
+          requestAnimationFrame(() => { historySection.style.maxHeight = "0px"; });
+          historyVisible = false;
+          return;
         }
         const res = await fetch(`${API_BASE}/conversations/${userId}`);
         const data = await res.json();
-        historySection.innerHTML="";
-        data.conversations.forEach(c=>{
-          const item=document.createElement("div");
-          item.textContent=c.preview;
-          item.className="p-2 cursor-pointer rounded text-gray-700 hover:bg-gray-200";
-          item.onclick=async()=>{
+        historySection.innerHTML = "";
+        data.conversations.forEach(c => {
+          const item = document.createElement("div");
+          item.textContent = c.preview;
+          item.className = "p-2 cursor-pointer rounded text-gray-700 hover:bg-gray-200";
+          item.onclick = async () => {
             setActiveMenu("menu-history");
-            activeConversationId=c.id;
-            chatBox.innerHTML="";
-            document.querySelectorAll("#history-section div").forEach(el=>{
-              el.classList.remove("bg-blue-100","text-blue-700");
+            activeConversationId = c.id;
+            chatBox.innerHTML = "";
+            document.querySelectorAll("#history-section div").forEach(el => {
+              el.classList.remove("bg-blue-100", "text-blue-700");
               el.classList.add("text-gray-700");
             });
-            item.classList.add("bg-blue-100","text-blue-700");
+            item.classList.add("bg-blue-100", "text-blue-700");
             item.classList.remove("text-gray-700");
-            const res2=await fetch(`${API_BASE}/conversation/${c.id}`);
-            const detail=await res2.json();
-            detail.messages.forEach(m=>addMessage(m.role,m.content));
+            const res2 = await fetch(`${API_BASE}/conversation/${c.id}`);
+            const detail = await res2.json();
+            detail.messages.forEach(m => addMessage(m.role, m.content));
           };
           historySection.appendChild(item);
         });
-        historySection.style.maxHeight="0px";
-        requestAnimationFrame(()=>historySection.style.maxHeight=historySection.scrollHeight+"px");
-        historyVisible=true;
+        historySection.style.maxHeight = "0px";
+        requestAnimationFrame(() => {
+          historySection.style.maxHeight = historySection.scrollHeight + "px";
+        });
+        historyVisible = true;
         setActiveMenu("menu-history");
-      } catch(e) { console.error(e); }
+      } catch (err) {
+        console.error("Lỗi tải lịch sử:", err);
+      }
     }
   </script>
 </body>
